@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Team Tonny's - Carbage Run 2026</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+ --orange: #ff3c00;
+ --yellow: #ffd700;
+ --black: #0a0a0a;
+ --gray: #1a1a1a;
+ --light: #f5f5f5;
+ --blue: #00d4ff;
+ --green: #00ff88;
+}
+
+* {
+ margin: 0;
+ padding: 0;
+ box-sizing: border-box;
+ -webkit-tap-highlight-color: transparent;
+}
+
+html {
+ font-size: 16px;
+}
+
+body {
+ font-family: 'Inter', sans-serif;
+ background: var(--black);
+ color: var(--light);
+ line-height: 1.5;
+ min-height: 100vh;
+}
+
+/* Password Modal */
+#password-modal {
+ display: none;
+ position: fixed;
+ inset: 0;
+ background: rgba(0,0,0,0.95);
+ z-index: 9999;
+ place-items: center;
+ padding: 1rem;
+}
+
+.password-box {
+ background: var(--gray);
+ padding: 2rem;
+ border-radius: 1rem;
+ border: 2px solid var(--orange);
+ width: 100%;
+ max-width: 320px;
+ text-align: center;
+}
+
+.password-box h3 {
+ font-family: 'Bebas Neue', sans-serif;
+ font-size: 1.75rem;
+ color: var(--orange);
+ margin-bottom: 1rem;
+}
+
+.password-box input {
+ width: 100%;
+ padding: 0.875rem;
+ border-radius: 0.5rem;
+ border: 2px solid #333;
+ background: var(--black);
+ color: white;
+ font-size: 1rem;
+ margin: 1rem 0;
+ text-align: center;
+}
+
+.password-box input:focus {
+ outline: none;
+ border-color: var(--orange);
+}
+
+.password-error {
+ color: #ff4444;
+ margin-top: 0.75rem;
+ display: none;
+ font-size: 0.875rem;
+}
+
+/* Mode Toggle */
+.mode-toggle {
+ position: fixed;
+ top: 0.5rem;
+ right: 0.5rem;
+ z-index: 1000;
+ background: var(--orange);
+ color: white;
+ border: none;
+ border-radius: 2rem;
+ padding: 0.625rem 1rem;
+ font-weight: 600;
+ font-size: 0.875rem;
+ cursor: pointer;
+}
+
+/* Banner */
+.admin-banner {
+ background: #333;
+ padding: 0.75rem;
+ text-align: center;
+ font-size: 0.75rem;
+ color: #aaa;
+ margin-top: 2.5rem;
+}
+
+.admin-banner.admin {
+ background: var(--orange);
+ color: white;
+}
+
+/* Header */
+.header {
+ background: linear-gradient(135deg, var(--orange), var(--yellow));
+ padding: 2rem 1rem;
+ text-align: center;
+}
+
+.header h1 {
+ font-family: 'Bebas Neue', sans-serif;
+ font-size: clamp(2.5rem, 12vw, 4rem);
+ color: white;
+ text-shadow: 2px 2px 0 #000;
+ letter-spacing: 0.05em;
+ line-height: 1;
+}
+
+.header .subtitle {
+ font-size: 0.875rem;
+ color: #000;
+ font-weight: 600;
+ text-transform: uppercase;
+ margin-top: 0.5rem;
+ letter-spacing: 0.1em;
+}
+
+.ford-badge {
+ display: inline-block;
+ background: var(--black);
+ color: var(--yellow);
+ padding: 0.5rem 1.25rem;
+ border-radius: 2rem;
+ margin-top: 1rem;
+ font-weight: 700;
+ border: 2px solid var(--yellow);
+ font-family: 'Bebas Neue', sans-serif;
+ font-size: 0.875rem;
+ letter-spacing: 0.05em;
+}
+
+/* Car Logo - Clean SVG Style */
+.car-logo {
+ width: 200px;
+ height: 80px;
+ margin: 1rem auto;
+ position: relative;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+}
+
+.car-svg {
+ width: 100%;
+ height: 100%;
+}
+
+.car-badge {
+ position: absolute;
+ top: -5px;
+ right: 10px;
+ background: var(--blue);
+ color: #000;
+ padding: 3px 10px;
+ border-radius: 12px;
+ font-size: 10px;
+ font-weight: bold;
+ font-family: 'Bebas Neue', sans-serif;
+ letter-spacing: 0.05em;
+}
+
+/* Slideshow */
+.slideshow-container {
+ max-width: 800px;
+ margin: 1rem auto;
+ padding: 0 1rem;
+}
+
+.slideshow-title {
+ font-family: 'Bebas Neue', sans-serif;
+ font-size: 1.25rem;
+ color: var(--orange);
+ text-align: center;
+ margin-bottom: 1rem;
+}
+
+.slideshow-wrapper {
+ position: relative;
+ border-radius: 1rem;
+ overflow: hidden;
+ background: var(--gray);
+ border: 1px solid rgba(255,255,255,0.1);
+}
+
+.slideshow {
+ position: relative;
+ height: 200px;
+}
+
+.slide {
+ position: absolute;
+ top: 0;
+ left: 0;
+ width: 100%;
+ height: 100%;
+ opacity: 0;
+ transition: opacity 0.5s;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+}
+
+.slide.active {
+ opacity: 1;
+}
+
+.slide img {
+ width: 100%;
+ height: 100%;
+ object-fit: cover;
+}
+
+.slide-placeholder {
+ width: 100%;
+ height: 100%;
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ justify-content: center;
+ background: rgba(255,255,255,0.05);
+ border: 2px dashed rgba(255,60,0,0.3);
+ cursor: pointer;
+}
+
+.slide-placeholder span {
+ font-size: 2rem;
+ color: var(--orange);
+}
+
+.slideshow-btn {
+ position: absolute;
+ top: 50%;
+ transform: translateY(-50%);
+ background: rgba(0,0,0,0.6);
+ color: white;
+ border: none;
+ width: 40px;
+ height: 40px;
+ border-radius: 50%;
+ font-size: 1.2rem;
+ cursor: pointer;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+}
+
+.slideshow-btn.prev { left: 10px; }
+.slideshow-btn.next { right: 10px; }
+
+.slideshow-dots {
+ display: flex;
+ justify-content: center;
+ gap: 8px;
+ padding: 10px;
+}
+
+.dot {
+ width: 10px;
+ height: 10px;
+ border-radius: 50%;
+ background: rgba(255,255,255,0.3);
+ cursor: pointer;
+}
+
+.dot.active {
+ background: var(--orange);
+}
+
+.slideshow-controls {
+ text-align: center;
+ padding: 10px;
+}
+
+/* Container */
+.container {
+ max-width: 1200px;
+ margin: 0 auto;
+ padding: 1rem;
+}
+
+/* Cards - MOBILE FIRST: Stack vertically */
+.card {
+ background: var(--gray);
+ border-radius: 1rem;
+ padding: 1.5rem;
+ margin-bottom: 1rem;
+ border: 1px solid rgba(255,255,255,0.1);
+}
+
+.card h2 {
+ font-family: 'Bebas Neue', sans-serif;
+ color: var(--orange);
+ font-size: 1.5rem;
+ margin-bottom: 1rem;
+ letter-spacing: 0.02em;
+}
+
+/* Countdown */
+.countdown {
+ display: grid;
+ grid-template-columns: repeat(4, 1fr);
+ gap: 0.5rem;
+ margin: 1rem 0;
+}
+
+.countdown-item {
+ background: var(--orange);
+ padding: 1rem 0.5rem;
+ border-radius: 0.75rem;
+ text-align: center;
+}
+
+.countdown-item .number {
+ font-size: clamp(1.75rem, 8vw, 2.5rem);
+ font-weight: 700;
+ font-family: 'Bebas Neue', sans-serif;
+ line-height: 1;
+}
+
+.countdown-item .label {
+ font-size: 0.625rem;
+ text-transform: uppercase;
+ opacity: 0.9;
+ margin-top: 0.25rem;
+ letter-spacing: 0.05em;
+}
+
+.phase-indicator {
+ display: inline-block;
+ padding: 0.625rem 1rem;
+ border-radius: 2rem;
+ font-size: 0.75rem;
+ font-weight: 600;
+ text-transform: uppercase;
+ margin-top: 1rem;
+}
+
+.phase-indicator.pre {
+ background: rgba(255,60,0,0.2);
+ color: var(--orange);
+ border: 1px solid var(--orange);
+}
+
+.phase-indicator.active {
+ background: rgba(0,255,136,0.2);
+ color: var(--green);
+ border: 1px solid var(--green);
+}
+
+/* Stats */
+.route-stats {
+ display: grid;
+ grid-template-columns: repeat(2, 1fr);
+ gap: 0.75rem;
+ margin: 1rem 0;
+}
+
+.stat-box {
+ background: rgba(255,255,255,0.05);
+ padding: 1rem;
+ border-radius: 0.75rem;
+ text-align: center;
+}
+
+.stat-box .value {
+ font-size: 1.75rem;
+ font-weight: 700;
+ color: var(--yellow);
+ font-family: 'Bebas Neue', sans-serif;
+}
+
+.stat-box .label {
+ font-size: 0.625rem;
+ color: #888;
+ text-transform: uppercase;
+ margin-top: 0.25rem;
+}
+
+/* Progress */
+.progress-bar {
+ width: 100%;
+ height: 1.5rem;
+ background: rgba(255,255,255,0.1);
+ border-radius: 0.75rem;
+ overflow: hidden;
+ margin-top: 1rem;
+}
+
+.progress-fill {
+ height: 100%;
+ background: linear-gradient(90deg, var(--orange), var(--yellow));
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ font-weight: 700;
+ font-family: 'Bebas Neue', sans-serif;
+ font-size: 0.875rem;
+}
+
+/* Map */
+#map {
+ height: 300px;
+ border-radius: 0.75rem;
+ margin: 1rem 0;
+}
+
+/* Buttons */
+.btn {
+ display: inline-flex;
+ align-items: center;
+ justify-content: center;
+ padding: 0.875rem 1.25rem;
+ border: none;
+ border-radius: 0.5rem;
+ background: var(--orange);
+ color: white;
+ font-weight: 600;
+ cursor: pointer;
+ font-size: 0.875rem;
+ width: 100%;
+ margin: 0.25rem 0;
+ min-height: 44px;
+}
+
+.btn.secondary {
+ background: rgba(255,255,255,0.1);
+ border: 1px solid rgba(255,255,255,0.2);
+}
+
+/* Driver select */
+.driver-select {
+ display: grid;
+ grid-template-columns: repeat(2, 1fr);
+ gap: 0.5rem;
+ margin: 1rem 0;
+}
+
+.driver-btn {
+ padding: 0.875rem;
+ border: 1px solid rgba(255,255,255,0.2);
+ border-radius: 0.5rem;
+ background: rgba(255,255,255,0.05);
+ color: white;
+ font-weight: 600;
+ cursor: pointer;
+ font-size: 0.875rem;
+ min-height: 44px;
+}
+
+.driver-btn.active {
+ background: var(--orange);
+ border-color: var(--orange);
+}
+
+/* Fuel */
+.fuel-input {
+ display: flex;
+ flex-direction: column;
+ gap: 0.5rem;
+ margin-bottom: 1rem;
+}
+
+.fuel-input input {
+ padding: 0.875rem;
+ border: none;
+ border-radius: 0.5rem;
+ background: rgba(255,255,255,0.1);
+ color: white;
+ font-size: 1rem;
+ min-height: 44px;
+}
+
+/* Checklist */
+.checklist {
+ list-style: none;
+}
+
+.checklist li {
+ padding: 1rem;
+ margin: 0.5rem 0;
+ background: rgba(255,255,255,0.05);
+ border-radius: 0.75rem;
+ display: flex;
+ align-items: center;
+ gap: 0.75rem;
+ cursor: pointer;
+ min-height: 44px;
+}
+
+.checklist li.checked {
+ opacity: 0.5;
+ background: rgba(0,255,136,0.1);
+}
+
+.checklist li.checked .check-text {
+ text-decoration: line-through;
+ color: #666;
+}
+
+/* Music */
+.music-card {
+  background: rgba(255,60,0,0.1);
+  padding: 1rem;
+  border-radius: 0.75rem;
+  margin: 0.5rem 0;
+  border: 1px solid rgba(255,60,0,0.3);
+}
+
+.music-card .route-name {
+  font-family: 'Bebas Neue', sans-serif;
+  color: var(--orange);
+  font-size: 1.1rem;
+  margin-bottom: 0.25rem;
+}
+
+.music-card .playlist {
+  color: #aaa;
+  font-size: 0.875rem;
+}
+
+/* Traffic News */
+.traffic-item {
+ display: flex;
+ align-items: center;
+ gap: 0.75rem;
+ padding: 0.875rem;
+ margin: 0.5rem 0;
+ background: rgba(255,255,255,0.05);
+ border-radius: 0.75rem;
+ border-left: 3px solid var(--orange);
+}
+
+.traffic-flag {
+ font-size: 1.5rem;
+}
+
+.traffic-content {
+ flex: 1;
+}
+
+.traffic-content strong {
+ color: var(--light);
+ font-size: 0.9rem;
+}
+
+.traffic-content p {
+ color: #888;
+ font-size: 0.8rem;
+ margin: 0.25rem 0 0;
+}
+
+.traffic-status {
+ width: 28px;
+ height: 28px;
+ border-radius: 50%;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ font-size: 0.875rem;
+}
+
+.traffic-status.ok {
+ background: rgba(0,255,136,0.2);
+ color: var(--green);
+}
+
+.traffic-status.warning {
+ background: rgba(255,215,0,0.2);
+ color: var(--yellow);
+}
+
+.traffic-status.alert {
+ background: rgba(255,60,0,0.2);
+ color: var(--orange);
+}
+
+/* Tips */
+.tip-card {
+ background: rgba(0,212,255,0.1);
+ padding: 1rem;
+ border-radius: 0.75rem;
+ margin: 0.5rem 0;
+ border-left: 3px solid var(--blue);
+ font-size: 0.875rem;
+}
+
+/* View only mode */
+body.view-only .checklist li,
+body.view-only .driver-btn,
+body.view-only .fuel-input input,
+body.view-only .btn:not(.mode-toggle) {
+ pointer-events: none;
+ opacity: 0.6;
+}
+
+/* Toast */
+.saved-data {
+ position: fixed;
+ bottom: 1rem;
+ right: 1rem;
+ background: var(--green);
+ color: #000;
+ padding: 1rem 1.5rem;
+ border-radius: 2rem;
+ font-weight: 600;
+ opacity: 0;
+ transform: translateY(1rem);
+ transition: all 0.3s;
+ z-index: 10000;
+ font-size: 0.875rem;
+}
+
+.saved-data.show {
+ opacity: 1;
+ transform: translateY(0);
+}
+
+/* Tablet and up */
+@media (min-width: 640px) {
+ .container {
+ padding: 1.5rem;
+ }
+
+ .grid {
+ display: grid;
+ grid-template-columns: repeat(2, 1fr);
+ gap: 1.5rem;
+ }
+
+ .card {
+ margin-bottom: 0;
+ }
+
+ .card.full-width {
+ grid-column: span 2;
+ }
+
+ .btn {
+ width: auto;
+ }
+
+ .fuel-input {
+ flex-direction: row;
+ }
+
+ .fuel-input input {
+ flex: 1;
+ }
+
+ .car-logo {
+ width: 250px;
+ height: 90px;
+ }
+
+ .slideshow {
+ height: 300px;
+ }
+}
+
+/* Desktop */
+@media (min-width: 1024px) {
+ .container {
+ padding: 2rem;
+ }
+
+ .grid {
+ grid-template-columns: repeat(3, 1fr);
+ }
+
+ .card.full-width {
+ grid-column: span 3;
+ }
+
+ #map {
+ height: 400px;
+ }
+}
+</style>
+</head>
+<body>
+<!-- Password Modal -->
+<div id="password-modal">
+ <div class="password-box">
+ <h3>🔐 Admin Toegang</h3>
+ <p style="color:#888;font-size:0.875rem;margin-bottom:0.5rem;">Voer wachtwoord in:</p>
+ <input type="password" id="admin-password" placeholder="Wachtwoord">
+ <button class="btn" onclick="checkPassword()">🔓 Ontgrendelen</button>
+ <button class="btn secondary" onclick="closePasswordModal()">❌ Annuleren</button>
+ <p class="password-error" id="password-error">❌ Verkeerd wachtwoord!</p>
+ </div>
+</div>
+
+<!-- Mode Toggle -->
+<button class="mode-toggle" onclick="toggleMode()" id="mode-btn">🔒 View Only</button>
+
+<!-- Banner -->
+<div class="admin-banner" id="admin-banner">👁️ VIEW ONLY MODE</div>
+
+<!-- Header -->
+<div class="header">
+ <h1>TEAM TONNY'S</h1>
+ <div class="subtitle">Carbage Run Albanië - Juni 2026</div>
+
+ <!-- Car Logo -->
+ <div class="car-logo">
+ <img src="team-tonnys-logo.png" alt="Team Tonny's Logo" style="max-width: 200px; height: auto; display: block; margin: 0 auto;">
+ <div class="car-badge">LPG</div>
+ </div>
+
+ <div class="ford-badge">6-CILINDER FORD POWER</div>
+</div>
+
+<!-- Photo Slideshow -->
+<div class="slideshow-container">
+ <h2 class="slideshow-title">📸 Trip Memories</h2>
+ <div class="slideshow-wrapper">
+ <div class="slideshow" id="slideshow">
+ <div class="slide active">
+ <img src="team-tonnys-ford.jpg" alt="Team Tonny's Ford">
+ </div>
+ <div class="slide">
+ <div class="slide-placeholder" onclick="addPhoto()">
+ <span>+</span>
+ <p style="color:#888;font-size:0.875rem;">Voeg foto toe</p>
+ </div>
+ </div>
+ </div>
+ <button class="slideshow-btn prev" onclick="changeSlide(-1)">❮</button>
+ <button class="slideshow-btn next" onclick="changeSlide(1)">❯</button>
+ <div class="slideshow-dots" id="slideshow-dots">
+ <span class="dot active" onclick="goToSlide(0)"></span>
+ <span class="dot" onclick="goToSlide(1)"></span>
+ </div>
+ </div>
+ <div class="slideshow-controls">
+ <button class="btn" onclick="addPhoto()" style="width:auto;padding:0.5rem 1rem;font-size:0.875rem;">📷 Foto Toevoegen</button>
+ <input type="file" id="photo-input" accept="image/*" style="display:none" onchange="handlePhotoUpload(event)">
+ </div>
+</div>
+
+<div class="container">
+ <div class="grid">
+ <!-- Countdown -->
+ <div class="card">
+ <h2 id="countdown-title">⏱️ Aftellen naar vertrek</h2>
+ <div class="countdown">
+ <div class="countdown-item"><div class="number" id="days">00</div><div class="label">Dagen</div></div>
+ <div class="countdown-item"><div class="number" id="hours">00</div><div class="label">Uren</div></div>
+ <div class="countdown-item"><div class="number" id="minutes">00</div><div class="label">Minuten</div></div>
+ <div class="countdown-item"><div class="number" id="seconds">00</div><div class="label">Seconden</div></div>
+ </div>
+ <div style="text-align:center;">
+ <div class="phase-indicator pre" id="phase-indicator">🚀 FASE 1: Nog te gaan</div>
+ </div>
+ <p style="text-align:center;color:#888;margin-top:1rem;font-size:0.75rem;">Start: 22 juni 2026 | Finish: 27 juni 2026</p>
+ </div>
+
+ <!-- Stats -->
+ <div class="card">
+ <h2>📊 Route Stats</h2>
+ <div class="route-stats">
+ <div class="stat-box"><div class="value">~1.800</div><div class="label">km</div></div>
+ <div class="stat-box"><div class="value">~24</div><div class="label">uur</div></div>
+ <div class="stat-box"><div class="value">4-5</div><div class="label">dagen</div></div>
+ <div class="stat-box"><div class="value">6</div><div class="label">cilinders</div></div>
+ </div>
+ <div class="progress-bar">
+ <div class="progress-fill" id="progress-fill" style="width:0%">0%</div>
+ </div>
+ </div>
+
+ <!-- Map -->
+ <div class="card full-width">
+ <h2>🗺️ Live Route Tracker</h2>
+ <div id="map"></div>
+ <div style="margin-top:1rem;display:flex;flex-wrap:wrap;gap:0.5rem;">
+ <button class="btn" onclick="startGPS()">▶️ Start GPS</button>
+ <button class="btn secondary" onclick="pauseGPS()">⏸️ Pauze</button>
+ <button class="btn secondary" onclick="exportRoute()">💾 Export</button>
+ </div>
+ </div>
+
+ <!-- Driver -->
+ <div class="card">
+ <h2>🎮 Bestuurder</h2>
+ <p style="color:#888;font-size:0.875rem;margin-bottom:1rem;">Kies wie er rijdt:</p>
+ <div class="driver-select">
+ <button class="driver-btn" onclick="selectDriver('Marchel')">Marchel</button>
+ <button class="driver-btn" onclick="selectDriver('Martin')">Martin</button>
+ <button class="driver-btn" onclick="selectDriver('Danzell')">Danzell</button>
+ <button class="driver-btn" onclick="selectDriver('Marald')">Marald</button>
+ </div>
+ <p style="margin-top:1rem;font-size:0.875rem;"><strong>Huidig:</strong> <span id="current-driver" style="color:var(--orange);">Niemand</span></p>
+ <button class="btn" onclick="logDriver()">✅ Log dit stuk</button>
+ <div id="driver-log" style="margin-top:1rem;"></div>
+ </div>
+
+ <!-- Fuel -->
+ <div class="card">
+ <h2>⛽ LPG Tracker</h2>
+ <div class="fuel-input">
+ <input type="number" id="fuel-liters" placeholder="Liters LPG">
+ <input type="number" id="fuel-price" placeholder="Prijs/L (€)">
+ <button class="btn" onclick="addFuel()">+ Toevoegen</button>
+ </div>
+ <div id="fuel-log"></div>
+ <p style="margin-top:1rem;font-size:0.875rem;"><strong>Totaal:</strong> <span id="fuel-total">€0.00</span> | <span id="fuel-liters-total">0L</span></p>
+ </div>
+
+ <!-- Checklist -->
+ <div class="card">
+ <h2>✅ Paklijst</h2>
+ <ul class="checklist" id="checklist">
+ <li onclick="toggleCheck(this, 'rijbewijs')"><span class="check-text">Rijbewijs & papieren</span></li>
+ <li onclick="toggleCheck(this, 'verzekering')"><span class="check-text">Groene kaart</span></li>
+ <li onclick="toggleCheck(this, 'paspoort')"><span class="check-text">Paspoort/ID</span></li>
+ <li onclick="toggleCheck(this, 'lpg')"><span class="check-text">LPG tank vol</span></li>
+ <li onclick="toggleCheck(this, 'ehbo')"><span class="check-text">EHBO-kit</span></li>
+ <li onclick="toggleCheck(this, 'lader')"><span class="check-text">Telefoonlader</span></li>
+ <li onclick="toggleCheck(this, 'cash')"><span class="check-text">Cash geld</span></li>
+ <li onclick="toggleCheck(this, 'camera')"><span class="check-text">Camera</span></li>
+ </ul>
+ <p style="text-align:center;margin-top:1rem;color:var(--orange);font-size:0.875rem;" id="check-progress">0/8 items</p>
+ </div>
+
+ <!-- Tips -->
+ <div class="card">
+ <h2>💡 Reistips</h2>
+ <div class="tip-card"><strong>🚗 Verkeer:</strong> In Albanië links rijden is normaal, wees alert!</div>
+ <div class="tip-card"><strong>💰 Tol:</strong> Cash betalen in Kroatië/Bosnië, creditcard niet overal</div>
+ <div class="tip-card"><strong>⛽ Tanken:</strong> LPG ~€0.70/L in Balkan, overal beschikbaar</div>
+ <div class="tip-card"><strong>📱 Simkaart:</strong> Koop lokale sim, ~€10 voor 20GB data</div>
+ <div class="tip-card"><strong>💶 Valuta:</strong> Albanië gebruikt Lek, Montenegro Euro, rest Euro/Kuna</div>
+ <div class="tip-card"><strong>🛡️ Verzekering:</strong> Groene kaart verplicht, check dekking!</div>
+ <div class="tip-card"><strong>🌡️ Weer:</strong> Juni: 20-30°C, neem zonnebrand mee</div>
+ <div class="tip-card"><strong>🍽️ Eten:</strong> Proef ćevapi (Bosnië) en byrek (Albanië)</div>
+ <div class="tip-card"><strong>🏨 Slapen:</strong> Campings ~€15/nacht, hotels ~€40/nacht</div>
+ <div class="tip-card"><strong>🔧 Onderhoud:</strong> Check olie, koelvloeistof, banden voor vertrek</div>
+ </div>
+
+ <!-- Live Traffic News -->
+ <div class="card full-width">
+ <h2>🚨 Live Verkeersnieuws</h2>
+ <div id="traffic-news">
+ <div class="traffic-item">
+ <span class="traffic-flag">🇦🇹</span>
+ <div class="traffic-content">
+ <strong>Oostenrijk (A2 Südautobahn)</strong>
+ <p id="traffic-at">Geen meldingen - Weg vrij richting Slovenië</p>
+ </div>
+ <span class="traffic-status ok">✓</span>
+ </div>
+ <div class="traffic-item">
+ <span class="traffic-flag">🇸🇮</span>
+ <div class="traffic-content">
+ <strong>Slovenië (A1)</strong>
+ <p id="traffic-si">Geen meldingen - Goede doorstroming</p>
+ </div>
+ <span class="traffic-status ok">✓</span>
+ </div>
+ <div class="traffic-item">
+ <span class="traffic-flag">🇭🇷</span>
+ <div class="traffic-content">
+ <strong>Kroatië (A1/A3)</strong>
+ <p id="traffic-hr">Geen meldingen - Tolwegen in goede staat</p>
+ </div>
+ <span class="traffic-status ok">✓</span>
+ </div>
+ <div class="traffic-item">
+ <span class="traffic-flag">🇧🇦</span>
+ <div class="traffic-content">
+ <strong>Bosnië (M17/E73)</strong>
+ <p id="traffic-ba">Let op: Snelheidslimiet 80km/u, veel politiecontroles</p>
+ </div>
+ <span class="traffic-status warning">⚠</span>
+ </div>
+ <div class="traffic-item">
+ <span class="traffic-flag">🇲🇪</span>
+ <div class="traffic-content">
+ <strong>Montenegro (E65/E80)</strong>
+ <p id="traffic-me">Bergwegen: Let op bochten en tegenliggers</p>
+ </div>
+ <span class="traffic-status warning">⚠</span>
+ </div>
+ <div class="traffic-item">
+ <span class="traffic-flag">🇦🇱</span>
+ <div class="traffic-content">
+ <strong>Albanië (A1)</strong>
+ <p id="traffic-al">Wegwerkzaamheden bij Tirana - Volg omleidingen</p>
+ </div>
+ <span class="traffic-status alert">⚠</span>
+ </div>
+ </div>
+ <p style="text-align:center;color:#888;margin-top:1rem;font-size:0.75rem;">
+ <button class="btn secondary" onclick="refreshTraffic()" style="width:auto;padding:0.5rem 1rem;">🔄 Ververs</button>
+ Laatste update: <span id="traffic-time">--:--</span>
+ </p>
+ </div>
+ </div>
+</div>
+
+<div class="saved-data" id="toast">💾 Opgeslagen!</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" onerror="console.error('Leaflet failed to load')"></script>
+<script>
+// PASSWORD PROTECTION
+const ADMIN_PASSWORD = 'tonny2026';
+let isAdmin = false;
+
+function toggleMode() {
+ if (isAdmin) {
+ isAdmin = false;
+ updateUI();
+ } else {
+ document.getElementById('password-modal').style.display = 'grid';
+ document.getElementById('admin-password').value = '';
+ document.getElementById('admin-password').focus();
+ document.getElementById('password-error').style.display = 'none';
+ }
+}
+
+function checkPassword() {
+ const input = document.getElementById('admin-password').value;
+ if (input === ADMIN_PASSWORD) {
+ isAdmin = true;
+ closePasswordModal();
+ updateUI();
+ showToast();
+ } else {
+ document.getElementById('password-error').style.display = 'block';
+ document.getElementById('admin-password').value = '';
+ document.getElementById('admin-password').focus();
+ }
+}
+
+function closePasswordModal() {
+ document.getElementById('password-modal').style.display = 'none';
+}
+
+function updateUI() {
+ const banner = document.getElementById('admin-banner');
+ const btn = document.getElementById('mode-btn');
+ const body = document.body;
+
+ if (isAdmin) {
+ banner.className = 'admin-banner admin';
+ banner.textContent = '🔧 ADMIN MODE';
+ btn.textContent = '🔓 Admin Mode';
+ body.classList.remove('view-only');
+ } else {
+ banner.className = 'admin-banner';
+ banner.textContent = '👁️ VIEW ONLY MODE';
+ btn.textContent = '🔒 View Only';
+ body.classList.add('view-only');
+ }
+}
+
+window.addEventListener('keydown', function(e) {
+ if (e.key === 'Escape') closePasswordModal();
+ if (e.key === 'Enter' && document.getElementById('password-modal').style.display === 'grid') {
+ checkPassword();
+ }
+});
+
+// SLIDESHOW
+let currentSlide = 0;
+let slides = document.querySelectorAll('.slide');
+let dots = document.querySelectorAll('.dot');
+
+function changeSlide(direction) {
+ slides[currentSlide].classList.remove('active');
+ dots[currentSlide].classList.remove('active');
+ currentSlide = (currentSlide + direction + slides.length) % slides.length;
+ slides[currentSlide].classList.add('active');
+ dots[currentSlide].classList.add('active');
+}
+
+function goToSlide(index) {
+ slides[currentSlide].classList.remove('active');
+ dots[currentSlide].classList.remove('active');
+ currentSlide = index;
+ slides[currentSlide].classList.add('active');
+ dots[currentSlide].classList.add('active');
+}
+
+function addPhoto() {
+ if (!isAdmin) return alert('Alleen Admin kan foto\'s toevoegen!');
+ document.getElementById('photo-input').click();
+}
+
+function handlePhotoUpload(event) {
+ const file = event.target.files[0];
+ if (file) {
+ const reader = new FileReader();
+ reader.onload = function(e) {
+ const newSlide = document.createElement('div');
+ newSlide.className = 'slide';
+ newSlide.innerHTML = '<img src="' + e.target.result + '" alt="Trip foto">';
+ document.getElementById('slideshow').appendChild(newSlide);
+
+ const newDot = document.createElement('span');
+ newDot.className = 'dot';
+ newDot.onclick = function() { goToSlide(slides.length); };
+ document.getElementById('slideshow-dots').appendChild(newDot);
+
+ slides = document.querySelectorAll('.slide');
+ dots = document.querySelectorAll('.dot');
+ goToSlide(slides.length - 1);
+ };
+ reader.readAsDataURL(file);
+ }
+}
+
+// Auto-advance slideshow
+setInterval(() => { if (slides.length > 1) changeSlide(1); }, 5000);
+
+// COUNTDOWN
+const tripStart = new Date('2026-06-22T08:00:00');
+const tripEnd = new Date('2026-06-27T18:00:00');
+
+function updateCountdown() {
+ const now = new Date();
+ let target, title, phaseClass, phaseText;
+
+ if (now < tripStart) {
+ target = tripStart;
+ title = '⏱️ Aftellen naar vertrek';
+ phaseClass = 'pre';
+ phaseText = '🚀 FASE 1: Nog te gaan';
+ } else if (now < tripEnd) {
+ target = tripEnd;
+ title = '⏱️ Aftellen naar finish';
+ phaseClass = 'active';
+ phaseText = '🏁 FASE 2: Trip is bezig!';
+ } else {
+ document.getElementById('countdown-title').textContent = '🎉 Trip voltooid!';
+ document.getElementById('phase-indicator').textContent = '🏆 Gefeliciteerd!';
+ return;
+ }
+
+ const diff = target - now;
+ const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+ const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+ const m = Math.floor((diff / (1000 * 60)) % 60);
+ const s = Math.floor((diff / 1000) % 60);
+
+ document.getElementById('days').textContent = String(d).padStart(2,'0');
+ document.getElementById('hours').textContent = String(h).padStart(2,'0');
+ document.getElementById('minutes').textContent = String(m).padStart(2,'0');
+ document.getElementById('seconds').textContent = String(s).padStart(2,'0');
+ document.getElementById('countdown-title').textContent = title;
+ document.getElementById('phase-indicator').className = 'phase-indicator ' + phaseClass;
+ document.getElementById('phase-indicator').textContent = phaseText;
+}
+setInterval(updateCountdown, 1000);
+
+// MAP
+let map;
+let mapInitialized = false;
+try {
+ map = L.map('map').setView([45, 18], 6);
+ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+ attribution: '© OpenStreetMap',
+ maxZoom: 19
+ }).addTo(map);
+ mapInitialized = true;
+} catch(e) {
+ console.error('Map init error:', e);
+ document.getElementById('map').innerHTML = '<div style="padding:2rem;text-align:center;color:#888;">🗺️ Kaart laden...<br>Herlaad de pagina</div>';
+}
+
+
+
+let gpsWatch = null;
+function startGPS() {
+ if (!mapInitialized) {
+ alert('Wacht even, kaart wordt geladen...');
+ return;
+ }
+ if (!navigator.geolocation) return alert('GPS niet beschikbaar');
+ gpsWatch = navigator.geolocation.watchPosition(pos => {
+ const { latitude, longitude } = pos.coords;
+ L.marker([latitude, longitude]).addTo(map).bindPopup('📍 Jullie zijn hier').openPopup();
+ map.setView([latitude, longitude], 10);
+ });
+}
+function pauseGPS() { if (gpsWatch) navigator.geolocation.clearWatch(gpsWatch); }
+function exportRoute() { alert('Route export'); }
+
+// DRIVER
+let currentDriver = null;
+function selectDriver(name) {
+ if (!isAdmin) return;
+ currentDriver = name;
+ document.getElementById('current-driver').textContent = name;
+ document.querySelectorAll('.driver-btn').forEach(btn => btn.classList.toggle('active', btn.textContent === name));
+}
+function logDriver() {
+ if (!isAdmin || !currentDriver) return alert('Selecteer eerst een bestuurder!');
+ const entry = document.createElement('div');
+ entry.style.cssText = 'padding:0.75rem;background:rgba(255,255,255,0.05);margin:0.5rem 0;border-radius:0.5rem;font-size:0.875rem;';
+ entry.innerHTML = '🚗 ' + currentDriver + ' - ' + new Date().toLocaleTimeString();
+ document.getElementById('driver-log').prepend(entry);
+ showToast();
+}
+
+// FUEL
+let totalLiters = 0, totalCost = 0;
+function addFuel() {
+ if (!isAdmin) return;
+ const liters = parseFloat(document.getElementById('fuel-liters').value) || 0;
+ const price = parseFloat(document.getElementById('fuel-price').value) || 0;
+ if (liters > 0 && price > 0) {
+ totalLiters += liters;
+ totalCost += liters * price;
+ document.getElementById('fuel-total').textContent = '€' + totalCost.toFixed(2);
+ document.getElementById('fuel-liters-total').textContent = totalLiters.toFixed(1) + 'L';
+ document.getElementById('fuel-liters').value = '';
+ document.getElementById('fuel-price').value = '';
+ showToast();
+ }
+}
+
+// CHECKLIST
+let checkedItems = {};
+function toggleCheck(el, key) {
+ if (!isAdmin) return;
+ el.classList.toggle('checked');
+ checkedItems[key] = el.classList.contains('checked');
+ updateCheckProgress();
+ showToast();
+}
+function updateCheckProgress() {
+ const checked = Object.values(checkedItems).filter(v => v).length;
+ document.getElementById('check-progress').textContent = checked + '/8 items';
+}
+
+// TOAST
+function showToast() {
+ const toast = document.getElementById('toast');
+ toast.classList.add('show');
+ setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+// TRAFFIC NEWS
+function refreshTraffic() {
+ // Simulate fetching live traffic data
+ const updates = [
+ { country: 'traffic-at', text: 'Geen meldingen - Weg vrij richting Slovenië', status: 'ok' },
+ { country: 'traffic-si', text: 'File bij grensovergang Karawanken tunnel (15 min)', status: 'warning' },
+ { country: 'traffic-hr', text: 'Wegwerkzaamheden A1 km 45-50, rijstrook versmalling', status: 'warning' },
+ { country: 'traffic-ba', text: 'Politiecontrole M17 nabij Sarajevo', status: 'warning' },
+ { country: 'traffic-me', text: 'Bergweg E65: mist boven 800m', status: 'alert' },
+ { country: 'traffic-al', text: 'A1 volledig open - normale verkeersstroom', status: 'ok' }
+ ];
+
+ // Randomly update some items
+ updates.forEach(update => {
+ if (Math.random() > 0.5) {
+ const el = document.getElementById(update.country);
+ if (el) el.textContent = update.text;
+ }
+ });
+
+ document.getElementById('traffic-time').textContent = new Date().toLocaleTimeString('nl-NL', {hour: '2-digit', minute:'2-digit'});
+ showToast();
+}
+
+// Auto-refresh traffic every 5 minutes
+setInterval(refreshTraffic, 300000);
+
+// INIT
+window.onload = function() {
+ isAdmin = false;
+ updateUI();
+ updateCountdown();
+ refreshTraffic();
+};
+</script>
+</body>
+</html>
